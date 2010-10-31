@@ -30,25 +30,23 @@ int main( int argc, char *argv[] )
   vtkImageReader2 * reader = readerFactory->CreateImageReader2( argv[1] );
   reader->SetFileName( argv[1] );
   reader->Update();
+  double* scalarRange = reader->GetOutput()->GetScalarRange();
 
   vtkSmartPointer<vtkImageMagnitude> magnitude =
     vtkSmartPointer<vtkImageMagnitude>::New();
   magnitude->SetInputConnection(reader->GetOutputPort());
   magnitude->Update();
 
-  double red[3] = {1, 0, 0 };
-
-  vtkSmartPointer<vtkIntArray> frequencies =
-    vtkSmartPointer<vtkIntArray>::New();
-
   vtkSmartPointer<vtkImageAccumulate> histogram =
     vtkSmartPointer<vtkImageAccumulate>::New();
   histogram->SetInputConnection(magnitude->GetOutputPort());
   histogram->SetComponentExtent(0,255,0,0,0,0);
-  histogram->SetComponentOrigin(0,0,0);
-  histogram->SetComponentSpacing(1,0,0);
+  histogram->SetComponentOrigin(scalarRange[0],0,0);
+  histogram->SetComponentSpacing((scalarRange[1] - scalarRange[0]) / 255,0,0);
   histogram->Update();
 
+  vtkSmartPointer<vtkIntArray> frequencies =
+    vtkSmartPointer<vtkIntArray>::New();
   frequencies->SetNumberOfComponents(1);
   frequencies->SetNumberOfTuples(256);
   int* output = static_cast<int*>(histogram->GetOutput()->GetScalarPointer());
@@ -77,6 +75,7 @@ int main( int argc, char *argv[] )
   barChart->LegendVisibilityOff();
   barChart->LabelVisibilityOff();
 
+  const double red[3] = {1, 0, 0 };
   int count = 0;
   for(int i = 0; i < 256; ++i)
     {
