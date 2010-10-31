@@ -56,26 +56,25 @@ int main( int argc, char *argv[] )
     frequencies->SetTuple1(j, *output++);
     }
 
-  vtkSmartPointer<vtkDataObject> dataObject =
+  vtkSmartPointer<vtkDataObject> frequenciesDataObject =
     vtkSmartPointer<vtkDataObject>::New();
 
-  dataObject->GetFieldData()->AddArray( frequencies );
+  frequenciesDataObject->GetFieldData()->AddArray( frequencies );
 
   // Create a vtkBarChartActor
   vtkSmartPointer<vtkBarChartActor> barChart =
     vtkSmartPointer<vtkBarChartActor>::New();
-
-  barChart->SetInput(dataObject);
-  barChart->SetTitle("Histogram");
+  barChart->SetInput( frequenciesDataObject );
+  barChart->SetTitle( "Histogram" );
   barChart->GetPositionCoordinate()->SetValue(0.05,0.05,0.0);
   barChart->GetPosition2Coordinate()->SetValue(0.95,0.85,0.0);
   barChart->GetProperty()->SetColor(1,1,1);
 
-  barChart->GetLegendActor()->SetNumberOfEntries(dataObject->GetFieldData()->GetArray(0)->GetNumberOfTuples());
+  barChart->GetLegendActor()->SetNumberOfEntries(frequenciesDataObject->GetFieldData()->GetArray(0)->GetNumberOfTuples());
   barChart->LegendVisibilityOff();
   barChart->LabelVisibilityOff();
 
-  const double red[3] = {1, 0, 0 };
+  const double red[3] = { 1, 0.2, 0.2 };
   int count = 0;
   for(int i = 0; i < 256; ++i)
     {
