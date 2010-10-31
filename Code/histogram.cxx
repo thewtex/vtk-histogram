@@ -47,7 +47,6 @@ int main( int argc, char *argv[] )
   histogram->SetComponentExtent(0,255,0,0,0,0);
   histogram->SetComponentOrigin(0,0,0);
   histogram->SetComponentSpacing(1,0,0);
-  histogram->IgnoreZeroOn();
   histogram->Update();
 
   frequencies->SetNumberOfComponents(1);
