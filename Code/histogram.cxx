@@ -5,7 +5,8 @@
 #include <vtkImageData.h>
 #include <vtkImageExtractComponents.h>
 #include <vtkIntArray.h>
-#include <vtkJPEGReader.h>
+#include <vtkImageReader2Factory.h>
+#include <vtkImageReader2.h>
 #include <vtkLegendBoxActor.h>
 #include <vtkProperty2D.h>
 #include <vtkRenderer.h>
@@ -24,8 +25,9 @@ int main( int argc, char *argv[] )
     }
  
   // Read a jpeg image
-  vtkSmartPointer<vtkJPEGReader> reader = 
-    vtkSmartPointer<vtkJPEGReader>::New();
+  vtkSmartPointer<vtkImageReader2Factory> readerFactory = 
+    vtkSmartPointer<vtkImageReader2Factory>::New();
+  vtkImageReader2 * reader = readerFactory->CreateImageReader2( argv[1] );
   reader->SetFileName( argv[1] );
   reader->Update();
  
