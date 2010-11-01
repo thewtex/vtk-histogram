@@ -14,7 +14,6 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkTable.h>
 #include <vtkSmartPointer.h>
-#include <vtkImageMagnitude.h>
 
 int main( int argc, char *argv[] )
 {
@@ -33,14 +32,9 @@ int main( int argc, char *argv[] )
   reader->Update();
   double* scalarRange = reader->GetOutput()->GetScalarRange();
 
-  vtkSmartPointer<vtkImageMagnitude> magnitude =
-    vtkSmartPointer<vtkImageMagnitude>::New();
-  magnitude->SetInputConnection(reader->GetOutputPort());
-  magnitude->Update();
-
   vtkSmartPointer<vtkImageAccumulate> histogram =
     vtkSmartPointer<vtkImageAccumulate>::New();
-  histogram->SetInputConnection(magnitude->GetOutputPort());
+  histogram->SetInputConnection( reader->GetOutputPort() );
   histogram->SetComponentExtent(0,255,0,0,0,0);
   histogram->SetComponentOrigin(scalarRange[0],0,0);
   histogram->SetComponentSpacing((scalarRange[1] - scalarRange[0]) / 255,0,0);
@@ -76,7 +70,7 @@ int main( int argc, char *argv[] )
     vtkSmartPointer<vtkContextView>::New();
   view->GetRenderer()->SetBackground( 0.2, 0.2, 0.2 );
   view->GetRenderWindow()->SetSize( 640, 480 );
-  
+
   vtkSmartPointer<vtkChartXY> chart =
     vtkSmartPointer<vtkChartXY>::New();
   view->GetScene()->AddItem( chart );
