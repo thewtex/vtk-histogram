@@ -9,6 +9,7 @@
 #include <vtkImageReader2Factory.h>
 #include <vtkImageReader2.h>
 #include <vtkPlot.h>
+#include <vtkTextProperty.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
@@ -78,6 +79,10 @@ int main( int argc, char *argv[] )
   vtkPlot * line = chart->AddPlot( vtkChart::BAR );
   line->SetInput( table, 0, 1 );
   line->GetXAxis()->SetTitle( "Bin" );
+  vtkTextProperty *textProp = line->GetXAxis()->GetLabelProperties();
+  textProp->SetColor( 1.0, 1.0, 1.0 );
+  textProp = line->GetXAxis()->GetTitleProperties();
+  textProp->SetColor( 1.0, 1.0, 1.0 );
   line->GetYAxis()->SetTitle( "Count" );
   line->SetColor( 0.1, 0.3, 0.9 );
 
