@@ -1,5 +1,6 @@
 #include <vtkAxis.h>
 #include <vtkChartXY.h>
+#include <vtkCommand.h>
 #include <vtkContextView.h>
 #include <vtkContextScene.h>
 #include <vtkDoubleArray.h>
@@ -17,6 +18,43 @@
 #include <vtkSmartPointer.h>
 
 #include <sstream>
+
+class ResetAxesCommand: public vtkCommand
+{
+public:
+  vtkTypeRevisionMacro(ResetAxesCommand, vtkCommand);
+
+  static ResetAxesCommand *New()
+    {
+    return new ResetAxesCommand;
+    }
+
+  virtual void Execute(vtkObject *vtkNotUsed(caller), unsigned long vtkNotUsed(eventId), 
+    void *vtkNotUsed(callData))
+    {
+      if( this->Chart == NULL )
+        {
+        std::cerr << "ResetAxesCommand axes have not been set." << std::endl;
+        return;
+        }
+
+      this->Chart->RecalculateBounds();
+    }
+
+  void SetChart( vtkChart *chart )
+    {
+    this->Chart = chart;
+    }
+
+protected:
+  ResetAxesCommand():
+    Chart( NULL )
+  {}
+
+private:
+  vtkChart *Chart;
+};
+vtkCxxRevisionMacro(ResetAxesCommand, "$Revision: 1.0$");
 
 int main( int argc, char *argv[] )
 {
@@ -90,6 +128,13 @@ int main( int argc, char *argv[] )
   textProp->SetColor( 1.0, 1.0, 1.0 );
   line->GetYAxis()->SetTitle( "Count" );
   line->SetColor( 0.1, 0.3, 0.9 );
+
+  vtkSmartPointer<ResetAxesCommand> resetAxesCommand =
+    vtkSmartPointer<ResetAxesCommand>::New();
+  resetAxesCommand->SetChart( chart );
+
+  vtkRenderWindowInteractor *interactor = view->GetInteractor();
+  interactor->AddObserver( vtkCommand::KeyPressEvent, resetAxesCommand );
 
   view->GetInteractor()->Initialize();
   view->GetInteractor()->Start();
