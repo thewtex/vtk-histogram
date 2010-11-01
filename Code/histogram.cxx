@@ -1,17 +1,18 @@
-#include <vtkActor.h>
-#include <vtkBarChartActor.h>
-#include <vtkFieldData.h>
+#include <vtkAxis.h>
+#include <vtkChartXY.h>
+#include <vtkContextView.h>
+#include <vtkContextScene.h>
+#include <vtkDoubleArray.h>
 #include <vtkImageAccumulate.h>
 #include <vtkImageData.h>
-#include <vtkImageExtractComponents.h>
 #include <vtkIntArray.h>
 #include <vtkImageReader2Factory.h>
 #include <vtkImageReader2.h>
-#include <vtkLegendBoxActor.h>
-#include <vtkProperty2D.h>
+#include <vtkPlot.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
+#include <vtkTable.h>
 #include <vtkSmartPointer.h>
 #include <vtkImageMagnitude.h>
 
@@ -20,7 +21,7 @@ int main( int argc, char *argv[] )
   // Handle the arguments
   if( argc < 2 )
     {
-    std::cout << "Required arguments: filename.jpg" << std::endl;
+    std::cout << "Required arguments: <input_file>" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -45,59 +46,49 @@ int main( int argc, char *argv[] )
   histogram->SetComponentSpacing((scalarRange[1] - scalarRange[0]) / 255,0,0);
   histogram->Update();
 
+  vtkSmartPointer<vtkDoubleArray> bins =
+    vtkSmartPointer<vtkDoubleArray>::New();
+  bins->SetNumberOfComponents( 1 );
+  bins->SetNumberOfTuples( 256 );
+  bins->SetName( "Bins" );
   vtkSmartPointer<vtkIntArray> frequencies =
     vtkSmartPointer<vtkIntArray>::New();
   frequencies->SetNumberOfComponents(1);
   frequencies->SetNumberOfTuples(256);
+  frequencies->SetName( "Frequency" );
   int* output = static_cast<int*>(histogram->GetOutput()->GetScalarPointer());
+  double spacing = histogram->GetComponentSpacing()[0];
+  double bin = histogram->GetComponentOrigin()[0];
 
   for(int j = 0; j < 256; ++j)
     {
+    bins->SetTuple1(j, bin);
+    bin += spacing;
     frequencies->SetTuple1(j, *output++);
     }
 
-  vtkSmartPointer<vtkDataObject> frequenciesDataObject =
-    vtkSmartPointer<vtkDataObject>::New();
+  vtkSmartPointer<vtkTable> table =
+    vtkSmartPointer<vtkTable>::New();
+  table->AddColumn( bins );
+  table->AddColumn( frequencies );
 
-  frequenciesDataObject->GetFieldData()->AddArray( frequencies );
+  vtkSmartPointer<vtkContextView> view =
+    vtkSmartPointer<vtkContextView>::New();
+  view->GetRenderer()->SetBackground( 0.2, 0.2, 0.2 );
+  view->GetRenderWindow()->SetSize( 640, 480 );
+  
+  vtkSmartPointer<vtkChartXY> chart =
+    vtkSmartPointer<vtkChartXY>::New();
+  view->GetScene()->AddItem( chart );
 
-  // Create a vtkBarChartActor
-  vtkSmartPointer<vtkBarChartActor> barChart =
-    vtkSmartPointer<vtkBarChartActor>::New();
-  barChart->SetInput( frequenciesDataObject );
-  barChart->SetTitle( "Histogram" );
-  barChart->GetPositionCoordinate()->SetValue(0.05,0.05,0.0);
-  barChart->GetPosition2Coordinate()->SetValue(0.95,0.85,0.0);
-  barChart->GetProperty()->SetColor(1,1,1);
+  vtkPlot * line = chart->AddPlot( vtkChart::BAR );
+  line->SetInput( table, 0, 1 );
+  line->GetXAxis()->SetTitle( "Bin" );
+  line->GetYAxis()->SetTitle( "Count" );
+  line->SetColor( 0.1, 0.3, 0.9 );
 
-  barChart->GetLegendActor()->SetNumberOfEntries(frequenciesDataObject->GetFieldData()->GetArray(0)->GetNumberOfTuples());
-  barChart->LegendVisibilityOff();
-  barChart->LabelVisibilityOff();
-
-  const double red[3] = { 1, 0.2, 0.2 };
-  int count = 0;
-  for(int i = 0; i < 256; ++i)
-    {
-    barChart->SetBarColor( count++, red );
-    }
-
-  // Visualize the histogram
-  vtkSmartPointer<vtkRenderer> renderer =
-    vtkSmartPointer<vtkRenderer>::New();
-  renderer->AddActor(barChart);
-
-  vtkSmartPointer<vtkRenderWindow> renderWindow =
-    vtkSmartPointer<vtkRenderWindow>::New();
-  renderWindow->AddRenderer(renderer);
-  renderWindow->SetSize(640, 480);
-
-  vtkSmartPointer<vtkRenderWindowInteractor> interactor =
-    vtkSmartPointer<vtkRenderWindowInteractor>::New();
-  interactor->SetRenderWindow(renderWindow);
-
-  // Initialize the event loop and then start it
-  interactor->Initialize();
-  interactor->Start();
+  view->GetInteractor()->Initialize();
+  view->GetInteractor()->Start();
 
   return  EXIT_SUCCESS;
 }
