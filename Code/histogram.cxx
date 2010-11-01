@@ -1,5 +1,6 @@
 #include <vtkAxis.h>
 #include <vtkChartXY.h>
+#include <vtkCommand.h>
 #include <vtkContextView.h>
 #include <vtkContextScene.h>
 #include <vtkDoubleArray.h>
@@ -15,6 +16,48 @@
 #include <vtkTable.h>
 #include <vtkSmartPointer.h>
 #include <vtkImageMagnitude.h>
+
+class ResetAxesCommand: public vtkCommand
+{
+public:
+  vtkTypeRevisionMacro(ResetAxesCommand, vtkCommand);
+
+  static ResetAxesCommand *New()
+    {
+    return new ResetAxesCommand;
+    }
+
+  virtual void Execute(vtkObject *vtkNotUsed(caller), unsigned long vtkNotUsed(eventId), 
+    void *vtkNotUsed(callData))
+    {
+      if( this->XAxis == NULL || this->YAxis == NULL )
+        {
+        std::cerr << "ResetAxesCommand axes have not been set." << std::endl;
+        return;
+        }
+
+      this->XAxis->SetRange( 0.0, 127.0 );
+      this->XAxis->AutoScale();
+      this->YAxis->AutoScale();
+    }
+
+  void SetAxes( vtkAxis *xAxis, vtkAxis *yAxis )
+    {
+    this->XAxis = xAxis;
+    this->YAxis = yAxis;
+    }
+
+protected:
+  ResetAxesCommand():
+    XAxis( NULL ),
+    YAxis( NULL )
+  {}
+
+private:
+  vtkAxis *XAxis;
+  vtkAxis *YAxis;
+};
+vtkCxxRevisionMacro(ResetAxesCommand, "$Revision: 1.0$");
 
 int main( int argc, char *argv[] )
 {
@@ -84,8 +127,16 @@ int main( int argc, char *argv[] )
   vtkPlot * line = chart->AddPlot( vtkChart::BAR );
   line->SetInput( table, 0, 1 );
   line->GetXAxis()->SetTitle( "Bin" );
+  line->GetXAxis()->SetRange( histogram->GetComponentOrigin()[0], bin );
   line->GetYAxis()->SetTitle( "Count" );
   line->SetColor( 0.1, 0.3, 0.9 );
+
+  vtkSmartPointer<ResetAxesCommand> resetAxesCommand =
+    vtkSmartPointer<ResetAxesCommand>::New();
+  resetAxesCommand->SetAxes( line->GetXAxis(), line->GetYAxis() );
+
+  vtkRenderWindowInteractor *interactor = view->GetInteractor();
+  interactor->AddObserver( vtkCommand::KeyPressEvent, resetAxesCommand );
 
   view->GetInteractor()->Initialize();
   view->GetInteractor()->Start();
