@@ -16,6 +16,8 @@
 #include <vtkTable.h>
 #include <vtkSmartPointer.h>
 
+#include <sstream>
+
 int main( int argc, char *argv[] )
 {
   // Handle the arguments
@@ -75,6 +77,9 @@ int main( int argc, char *argv[] )
   vtkSmartPointer<vtkChartXY> chart =
     vtkSmartPointer<vtkChartXY>::New();
   view->GetScene()->AddItem( chart );
+  std::ostringstream title;
+  title << "Minimum value = " << scalarRange[0] << "  Maximum value = " << scalarRange[1];
+  chart->SetTitle( title.str().c_str() );
 
   vtkPlot * line = chart->AddPlot( vtkChart::BAR );
   line->SetInput( table, 0, 1 );
