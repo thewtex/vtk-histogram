@@ -68,7 +68,7 @@ int main( int argc, char *argv[] )
     // Read a jpeg image
     vtkSmartPointer<vtkImageReader2Factory> readerFactory =
       vtkSmartPointer<vtkImageReader2Factory>::New();
-    vtkImageReader2 * reader = readerFactory->CreateImageReader2( argv[1] );
+    vtkImageReader2 * reader = readerFactory->CreateImageReader2( args.inputImage.c_str() );
     reader->SetFileName( args.inputImage.c_str() );
     reader->Update();
     double* scalarRange = reader->GetOutput()->GetScalarRange();
