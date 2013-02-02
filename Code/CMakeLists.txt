@@ -3,10 +3,8 @@ add_executable( histogram
   histogramArgs.cxx
   )
 target_link_libraries( histogram
-  vtkCommon
-  vtkIO
-  vtkRendering
-  vtkCharts
+  ${VTK_LIBRARIES}
+  vtkmetaio
   )
 install( TARGETS histogram
   RUNTIME DESTINATION bin )
