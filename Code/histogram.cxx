@@ -140,7 +140,11 @@ int main( int argc, char *argv[] )
     chart->SetTitle( title.str().c_str() );
 
     vtkPlot * line = chart->AddPlot( vtkChart::BAR );
+#if VTK_MAJOR_VERSION < 6
     line->SetInput( table, 0, 1 );
+#else
+    line->SetInputData( table, 0, 1 );
+#endif
     line->GetXAxis()->SetTitle( "Bin" );
     vtkTextProperty *textProp = line->GetXAxis()->GetLabelProperties();
     textProp->SetColor( 1.0, 1.0, 1.0 );
